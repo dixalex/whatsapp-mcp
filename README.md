@@ -6,6 +6,8 @@ With this you can search and read your personal Whatsapp messages (including ima
 
 It connects to your **personal WhatsApp account** directly via the Whatsapp web multidevice API (using the [whatsmeow](https://github.com/tulir/whatsmeow) library). All your messages are stored locally in a SQLite database and only sent to an LLM (such as Claude) when the agent accesses them through tools (which you control).
 
+> 🔀 **Fork note.** This is a fork of [lharries/whatsapp-mcp](https://github.com/lharries/whatsapp-mcp) that bumps the pinned `whatsmeow` (and its dependencies) to a current version, fixing the **`405 Client outdated`** connection error caused by WhatsApp rejecting the older client. `whatsapp-bridge/main.go` is updated for the newer whatsmeow API (which now takes a `context.Context`). Requires Go 1.25+. No feature or behavior changes beyond the dependency refresh.
+
 Here's an example of what you can do when it's connected to Claude.
 
 ![WhatsApp MCP](./example-use.png)
