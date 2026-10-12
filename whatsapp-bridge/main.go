@@ -600,9 +600,20 @@ func downloadMedia(client *whatsmeow.Client, messageStore *MessageStore, message
 	}
 
 	// Check if file already exists
-	if _, err := os.Stat(localPath); err == nil {
-		// File exists, return it
-		return true, mediaType, filename, absPath, nil
+	if info, err := os.Stat(localPath); err == nil {
+		// Two messages can get the same filename (it comes from the arrival second), so
+		// only reuse the file when its size matches this message
+		if fileLength == 0 || uint64(info.Size()) == fileLength {
+			return true, mediaType, filename, absPath, nil
+		}
+		filename = messageID + "_" + filename
+		localPath = fmt.Sprintf("%s/%s", chatDir, filename)
+		if absPath, err = filepath.Abs(localPath); err != nil {
+			return false, "", "", "", fmt.Errorf("failed to get absolute path: %v", err)
+		}
+		if _, err := os.Stat(localPath); err == nil {
+			return true, mediaType, filename, absPath, nil
+		}
 	}
 
 	// If we don't have all the media info we need, we can't download
@@ -666,13 +677,9 @@ func extractDirectPathFromURL(url string) string {
 		return url // Return original URL if parsing fails
 	}
 
-	pathPart := parts[1]
-
-	// Remove query parameters
-	pathPart = strings.SplitN(pathPart, "?", 2)[0]
-
-	// Create proper direct path format
-	return "/" + pathPart
+	// Keep the query string. whatsmeow appends "&hash=..." to the direct path, and the
+	// CDN answers HTTP 403 unless the signed ccb/oh/oe parameters are still on it.
+	return "/" + parts[1]
 }
 
 // Start a REST API server to expose the WhatsApp client functionality
